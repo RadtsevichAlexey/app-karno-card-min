@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Минимизация карт Карно</title>
+		<meta content="text/html; charset=utf-8" />
+		<link rel="stylesheet" type="text/css" href="styles.css"/>
+		<link rel="icon" href="favicon.ico">
+	</head>
+	<body>		
+		<div class="interface">
+			<table>
+				<tr>
+				
+					<td  width="360px" height="100%">
+						<fieldset height="100%">
+							<legend>Ввод данных</legend>
+							<div class="input">
+							
+								<form name="DataInput">
+								<table>
+									<tr>
+										<div class="num-calc">
+											<input id="function" class="edit-text-bottom-border edit-text-bottom-border-full-width" placeholder="~x1 & x2 | x3" onfocus='this.placeholder = ""' onblur='this.placeholder = "~x1 & x2 | x3"' title="Функция">
+											<p class="centered">
+												<i>Введите функцию</i>
+											</p>
+											<div class="controls">
+												<div class="keyboard no-select">
+						
+													<div id="keys">
+														<div class="key" id="or-key" title="ИЛИ" onclick="document.getElementById('function').value += 'V';">
+															<span>∨</span>
+														</div>
+														<div class="key" id="and-key" title="И" onclick="document.getElementById('function').value += '∧';">
+															<span>∧</span>
+														</div>
+														<div class="key" id="not-key" title="НЕ" onclick="document.getElementById('function').value += '¬';">
+															<span>¬</span>
+														</div>
+														<div class="key" id="xor-key" title="Исключающее ИЛИ" onclick="document.getElementById('function').value += '⊕';">
+															<span>⊕</span>
+														</div>
+														<!-- <div class="key" id="implic-key" title="Импликация" onclick="document.getElementById('function').value += '→';">
+															<span>→</span>
+														</div>
+														<div class="key" id="eq-key" title="Эквивалентность" onclick="document.getElementById('function').value += '≡';">
+															<span>≡</span>
+														</div> -->
+														
+														<div class="key" id="x0-key" onclick="document.getElementById('function').value += 'x0';">
+															<span>
+																X<sub>0</sub>
+															</span>
+														</div>
+														<div class="key" id="x1-key" onclick="document.getElementById('function').value += 'x1';">
+															<span>
+																X<sub>1</sub>
+															</span>
+														</div>
+														<div class="key" id="x2-key" onclick="document.getElementById('function').value += 'x2';">
+															<span>
+																X<sub>2</sub>
+															</span>
+														</div>
+														<div class="key" id="x3-key" onclick="document.getElementById('function').value += 'x3';">
+															<span>
+																X<sub>3</sub>
+															</span>
+														</div>
+														
+														<br>
+													</div>
+													
+												</div>
+												
+												</div>
+											</div>
+											
+										</div>
+									</tr>
+									<tr>
+									
+										<td  width="120px">
+											<div class="col" id="Lcol" >
+												<div style="margin:0; float: left; width:100%;">
+													<label id="Variables">X<sub>0</sub>X<sub>1</sub>X<sub>2</sub>X<sub>3</sub></label>
+												</div>
+												<textarea type="text" name="TruthTable" id="TruthTable" readonly="true">0000000100100011010001010110011110001001101010111100110111101111</textarea>
+												<textarea type="text" name="exp" id="exp" maxLength="16" autofocus onInput="if(/[^0-1 .]/i.test(this.value)){this.value=this.value.substr(0,this.value.length-1);}" readonly></textarea>
+											</div>
+										</td>
+										
+										<td >
+											<div class="col" style="float: right">
+												<b>Количество переменных</b><br>
+												<select name="NumOfVars" onchange="ValNumChange(document.DataInput.NumOfVars.value); ReloadKC();">
+													<option value="3" > 3 переменные </option> 
+													<option value="4" selected> 4 переменные </option> 
+												</select>
+												
+												<div class="radio">
+													<b>Метод минимизации</b><br>
+													<input id="MDNF" name="MM" type="radio" value="1" checked>
+													<label for="MDNF">МДНФ</label>
+													<input id="MKNF" name="MM" type="radio" value="0">
+													<label for="MKNF">МКНФ</label>
+												</div>
+													
+												<input type="button" value="Вычислить" onclick="calculateMin();">
+												<br />
+												<input type="button" value="Очистить" onclick="
+													document.getElementById('function').value = '';
+													document.getElementById('exp').value = '';
+													document.getElementById('exps').innerHTML = '';
+
+													console.log('f', document.getElementById('function').value);
+													console.log('v', document.getElementById('exp').value);
+												">
+												
+												<div style="display: none;">
+													<b>Случайный пример</b><br>
+													<input type="button" value="Показать пример" onclick="
+														var exp = examples[Math.round((Math.random()*16))%16];
+														
+														if(document.DataInput.NumOfVars.value != '6')
+														{
+															document.DataInput.NumOfVars.value = '6';
+															ValNumChange('6'); 
+															ReloadKC();
+														}
+														
+														document.DataInput.exp.value = exp;
+														KAL();
+													">
+												</div>
+											</div>
+										</td>
+										
+									</tr>
+								</form>	
+								</table>
+							</div>	
+						</fieldset>		
+					</td>
+					
+					<td >
+						<fieldset>
+							<legend>Карта Карно</legend>
+							<div class="karnaugh">
+								<table>
+									<tr>
+									
+										<td  style="padding:0">
+											<div id="container" style="display: none;"></div>
+											<canvas id="2DimKC" width="420px" height="420px"></canvas>
+										</td>
+										
+										<td  style="padding:0; width:240px;">
+											<form name="KarnaughSets" >
+												<div id="Rcol" >
+													<div class="group" id="group" ></div>													
+													<div style="display: none;">
+														<b>Прозрачность полукарт</b>
+														<input type="range" name="PlaneOpacity" min="0" max="1" step="0.01" value="0.7" onInput="ChangePLanes(document.KarnaughSets.PlaneOpacity.value);">
+														<b>Прозрачность пустых ячеек</b>
+														<input type="range" name="EmptyCellOpacity" min="0" max="0.7" step="0.01" value="0.7" onInput="ChangeCells(document.KarnaughSets.EmptyCellOpacity.value);">
+													</div>
+												</div>
+												
+											</form>
+										</td>
+									
+									</tr>
+								</table>
+							</div>
+						</fieldset>
+					</td>
+				</tr>
+				
+				<tr>
+					<td colspan="2" style="padding-top: 0;" >
+						<div class="output">	
+							<fieldset>
+								<legend>Вывод</legend>
+								<div id="exps" class="exps">
+								</div> 
+							</fieldset>
+						</div>
+					</td>
+				</tr>
+			</table> 
+		</div>
+
+		<script src="Karnaugh.js"></script>
+		<script src="three/three.min.js"></script>
+		<script src="three/Projector.js"></script>
+		<script src="three/Detector.js"></script>
+		<script src="three/CanvasRenderer.js"></script>
+		<script src="three/TextGeometry.js"></script>
+		<script src="three/FontUtils.js"></script>
+		<script src="three/gentilis_regular.typeface.js"></script>
+		<script src="CalcMin.js"></script>
+		<script>
+			function calculateMin() {
+				var func = document.getElementById("function").value;
+				var vector = document.getElementById("exp").value;
+
+				var regDv = new RegExp('[0-1]');
+				var regFunc = new RegExp('\(|\)|[0-3]|[x, V]|\|');
+
+				let flagDv = true;
+				let flagFunc = false;
+
+				console.log("func", func)
+
+
+				if (!regDv.test(func) && regFunc.test(func)) {
+					flagDv = false;
+					flagFunc = true;
+				} else if (!regFunc.test(func) && flagDv == false) {
+					flagFunc = false; 
+				}
+
+				if (flagFunc) {
+					func = func.replace(new RegExp("V", "g"), "|");
+					func = func.replace(new RegExp("∧", "g"), "&");
+					func = func.replace(new RegExp("¬|!", "g"), "~");
+					func = func.replace(new RegExp("⊕", "g"), "^");
+					// func = func.replace(new RegExp("x0", "g"), "A");
+					// func = func.replace(new RegExp("x1", "g"), "B");
+					// func = func.replace(new RegExp("x2", "g"), "C");
+					// func = func.replace(new RegExp("x3", "g"), "D");
+					// func = func.replace(new RegExp("->|→", "g"), "^");
+					// func = func.replace(new RegExp("=|≡", "g"), "^");
+					console.log("func after regex", func)
+					document.getElementById("exp").value = convert(func);
+				}
+
+				if (flagDv) {
+					document.getElementById("exp").value = func;
+				}
+				KAL();
+			};
+
+			function convert(func) {
+				var constVect;
+				var vect = "";
+
+				console.log("NumOfVars", NumOfVars)
+
+				if (NumOfVars == 3) {
+					constVect = "000001010011100101110111";
+
+					for (let i = 0; i < 2**NumOfVars; i++) {
+						let x0 = constVect[0+NumOfVars*i];
+						let x1 = constVect[1+NumOfVars*i];
+						let x2 = constVect[2+NumOfVars*i];
+
+						vect += eval(func);
+
+						console.log(x0, x1, x2, "|", eval(func))
+						console.log("------------")
+					}
+
+				}
+				if (NumOfVars == 4) {
+					constVect = "0000000100100011010001010110011110001001101010111100110111101111";
+
+					for (let i = 0; i < 2**NumOfVars; i++) {
+						let x0 = constVect[0+NumOfVars*i];
+						let x1 = constVect[1+NumOfVars*i];
+						let x2 = constVect[2+NumOfVars*i];
+						let x3 = constVect[3+NumOfVars*i];
+
+						vect += eval(func);
+
+						console.log(x0, x1, x2, x3, "|", eval(func))
+						console.log("------------")
+					}
+
+				}
+				
+				console.log("vector", vect)
+				return vect;
+			};
+		</script>
+	</body>
+</html>
